@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../components/GlassCard';
 import { Shield, ArrowLeft, ArrowRight, LogOut, Loader2, Users, Search, Activity, Mail } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { db } from '../firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { FormData } from '../types';
 import { ScrollableArea } from '../components/ScrollableArea';
@@ -15,8 +14,8 @@ interface Submission extends FormData {
 }
 
 export function AdminView() {
-  const [user, setUser] = useState(auth.currentUser);
-  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('adminAuth') === 'true');
+  const [password, setPassword] = useState('');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
@@ -24,37 +23,26 @@ export function AdminView() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((u) => {
-      setLoadingAuth(false);
-      if (u) {
-        if (u.email?.endsWith('@decentralizedmasters.com')) {
-          setUser(u);
-          fetchSubmissions();
-        } else {
-          signOut(auth);
-          setUser(null);
-          setError('Access denied. Please use an @decentralizedmasters.com email address.');
-        }
-      } else {
-        setUser(null);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const handleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (err: any) {
-      console.error(err);
-      if (err.code === 'auth/popup-closed-by-user' || err.message.includes('popup')) {
-        setError('Popup closed or blocked. If you are viewing this in an embedded preview, please open the app in a new tab to sign in.');
-      } else {
-        setError(err.message + ' (Try opening the app in a new tab if this persists)');
-      }
+    if (isAuthenticated) {
+      fetchSubmissions();
     }
+  }, [isAuthenticated]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'DM2026*') {
+      setIsAuthenticated(true);
+      sessionStorage.setItem('adminAuth', 'true');
+      setError(null);
+    } else {
+      setError('Incorrect password');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem('adminAuth');
+    setSubmissions([]);
   };
 
   const fetchSubmissions = async () => {
@@ -82,21 +70,13 @@ export function AdminView() {
       });
       setSubmissions(subs);
     } catch (err: any) {
-      setError('Error fetching data. Ensure you are an admin. ' + err.message);
+      setError('Error fetching data. ' + err.message);
     } finally {
       setLoadingData(false);
     }
   };
 
-  if (loadingAuth) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="animate-spin text-[var(--accent)]" size={40} />
-      </div>
-    );
-  }
-
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <div className="w-full max-w-md mx-auto mt-12 px-4">
         <GlassCard className="text-center p-8">
@@ -105,22 +85,30 @@ export function AdminView() {
           </div>
           <h1 className="text-2xl font-bold text-[var(--fg)] mb-2">Admin Access</h1>
           <p className="text-[var(--fg-muted)] mb-8">
-            Please sign in to access the admin dashboard.
+            Please enter the admin password.
           </p>
           
-          <button 
-            onClick={handleLogin}
-            className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] font-medium py-3.5 px-6 rounded-xl transition-all shadow-md"
-          >
-            Sign in with Google
-          </button>
-          
-          <button 
-            onClick={() => window.open(window.location.href, '_blank')}
-            className="w-full mt-3 bg-[var(--card-bg)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--fg)] font-medium py-3.5 px-6 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
-          >
-            Open in New Tab (Fixes Login)
-          </button>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-3.5 text-[var(--fg)] placeholder-[var(--fg-muted)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+                autoFocus
+              />
+            </div>
+            {error && (
+              <div className="text-[#e0455a] text-sm text-left">{error}</div>
+            )}
+            <button 
+              type="submit"
+              className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] font-medium py-3.5 px-6 rounded-xl transition-all shadow-md"
+            >
+              Sign In
+            </button>
+          </form>
 
           <Link 
             to="/"
@@ -143,9 +131,8 @@ export function AdminView() {
           <h1 className="text-2xl md:text-3xl font-bold text-[var(--fg)]">Dashboard</h1>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-[var(--fg-muted)] hidden md:inline">{user.email}</span>
           <button 
-            onClick={() => signOut(auth)}
+            onClick={handleLogout}
             className="flex items-center gap-2 p-2 px-4 bg-[var(--card-bg)] rounded-lg text-[#e0455a] border border-[#e0455a]/20 hover:bg-[#e0455a]/10 transition-colors font-medium text-sm"
           >
             <LogOut size={16} /> Sign out
