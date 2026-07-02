@@ -25,10 +25,18 @@ export function AdminView() {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((u) => {
-      setUser(u);
       setLoadingAuth(false);
       if (u) {
-        fetchSubmissions();
+        if (u.email?.endsWith('@decentralizedmasters.com')) {
+          setUser(u);
+          fetchSubmissions();
+        } else {
+          signOut(auth);
+          setUser(null);
+          setError('Access denied. Please use an @decentralizedmasters.com email address.');
+        }
+      } else {
+        setUser(null);
       }
     });
     return () => unsubscribe();

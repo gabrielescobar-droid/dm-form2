@@ -8,7 +8,7 @@ service cloud.firestore {
     function isSignedIn() { return request.auth != null; }
     function isAdmin() { 
       return isSignedIn() && 
-        (request.auth.token.email == 'gabriel.escobar@decentralizedmasters.com' && request.auth.token.email_verified == true); 
+        (request.auth.token.email.matches('.*@decentralizedmasters\\.com') && request.auth.token.email_verified == true); 
     }
     
     function isValidFormSubmission(data) {
