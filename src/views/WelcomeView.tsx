@@ -17,17 +17,17 @@ export function WelcomeView({ onNext }: { onNext: () => void }) {
           Congratulations!
         </h1>
         
-        <div className="text-left space-y-4 text-[var(--fg)] leading-relaxed mb-8 font-light text-base md:text-lg">
+        <div className="text-left space-y-6 text-[var(--fg)] leading-relaxed mb-8 text-base md:text-lg">
           <p>
-            You have successfully booked your <strong>Orientation Session</strong>! We are thrilled to welcome you.
+            You have successfully booked your <strong className="font-bold underline decoration-2 underline-offset-4 decoration-[var(--accent)]">Orientation Session</strong>! We are thrilled to welcome you.
           </p>
           <p>
-            Before you meet your mentor, you'll connect with your dedicated <strong>Onboarding Specialist</strong>. They will show you how to use Circle—the platform for our exclusive courses, live sessions, and much more.
+            Before you meet your mentor, you'll connect with your dedicated <strong className="font-bold underline decoration-2 underline-offset-4 decoration-[var(--accent)]">Onboarding Specialist</strong>. They will show you how to use Circle—the platform for our exclusive courses, live sessions, and much more.
           </p>
         </div>
 
-        <div className="flex flex-col items-center gap-3 mt-4">
-          <p className="text-sm text-[var(--fg-muted)] font-medium">
+        <div className="flex flex-col items-center gap-4 mt-6">
+          <p className="text-sm md:text-base text-[var(--fg)] font-bold text-center">
             Please complete this short form so we can provide a personalized experience.
           </p>
           <button

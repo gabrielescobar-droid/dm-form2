@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GlassCard } from '../components/GlassCard';
 import { ScrollableArea } from '../components/ScrollableArea';
 import { FormData } from '../types';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronDown } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
 
 const TIMEZONES = [
@@ -89,21 +89,26 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                   <h2 className="text-2xl font-bold text-dm-gradient">Best time to reach you</h2>
                   
                   <div className="space-y-4">
-                    <label className="text-sm font-medium text-[var(--fg-muted)]">Timezone</label>
-                    <select
-                      value={formData.timezone}
-                      onChange={(e) => updateData({ timezone: e.target.value })}
-                      className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl p-4 text-[var(--fg)] appearance-none focus:outline-none focus:border-[var(--accent)] transition-colors"
-                    >
-                      <option value="" disabled>Select your timezone</option>
-                      {TIMEZONES.map(tz => (
-                        <option key={tz} value={tz}>{tz}</option>
-                      ))}
-                    </select>
+                    <label className="text-sm font-bold text-[var(--fg)]">Timezone</label>
+                    <div className="relative">
+                      <select
+                        value={formData.timezone}
+                        onChange={(e) => updateData({ timezone: e.target.value })}
+                        className="w-full bg-[var(--bg)] border-2 border-[var(--border)] hover:border-[var(--border-hover)] rounded-xl p-4 pr-12 text-[var(--fg)] font-medium appearance-none focus:outline-none focus:border-[var(--accent)] transition-all cursor-pointer shadow-sm"
+                      >
+                        <option value="" disabled>Select your timezone</option>
+                        {TIMEZONES.map(tz => (
+                          <option key={tz} value={tz}>{tz}</option>
+                        ))}
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--fg-muted)]">
+                        <ChevronDown size={20} />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-sm font-medium text-[var(--fg-muted)]">Availability (Select all that apply)</label>
+                    <label className="text-sm font-bold text-[var(--fg)]">Availability (Select all that apply)</label>
                     <div className="flex flex-wrap gap-3">
                       {FRANJAS.map(f => {
                         const isSelected = formData.franja.includes(f);
@@ -116,13 +121,13 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                                 : [...formData.franja, f];
                               updateData({ franja: newFranja });
                             }}
-                            className={`px-6 py-3 rounded-xl border transition-all duration-200 flex items-center gap-2 ${
+                            className={`px-6 py-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3 font-medium shadow-sm cursor-pointer ${
                               isSelected 
-                                ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] font-medium shadow-[0_4px_12px_rgba(56,114,238,0.1)]' 
-                                : 'bg-transparent border-[var(--border)] text-[var(--fg-muted)] hover:border-[var(--border-hover)]'
+                                ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] shadow-[0_4px_12px_rgba(56,114,238,0.1)]' 
+                                : 'bg-[var(--bg)] border-[var(--border)] text-[var(--fg)] hover:border-[var(--border-hover)] hover:shadow-md'
                             }`}
                           >
-                            {isSelected && <Check size={16} />}
+                            {isSelected && <Check size={18} />}
                             {f}
                           </button>
                         );
@@ -255,20 +260,20 @@ function RadioQuestion({ title, subtitle, options, value, onChange }: { title: s
         {subtitle && <p className="text-[var(--fg-muted)] text-sm">{subtitle}</p>}
       </div>
       
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         {options.map(opt => {
           const isSelected = value === opt;
           return (
             <button
               key={opt}
               onClick={() => onChange(opt)}
-              className={`w-full p-5 rounded-xl border text-left transition-all duration-200 flex items-center justify-between group ${
+              className={`w-full p-5 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between group cursor-pointer shadow-sm ${
                 isSelected 
-                  ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] font-medium shadow-[0_4px_12px_rgba(56,114,238,0.1)]' 
-                  : 'bg-transparent border-[var(--border)] text-[var(--fg)] hover:border-[var(--border-hover)] hover:bg-[var(--border)]'
+                  ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] shadow-[0_4px_12px_rgba(56,114,238,0.1)]' 
+                  : 'bg-[var(--bg)] border-[var(--border)] text-[var(--fg)] hover:border-[var(--border-hover)] hover:bg-[var(--card-bg)] hover:shadow-md'
               }`}
             >
-              <span className="font-medium text-lg">{opt}</span>
+              <span className="font-bold text-lg">{opt}</span>
               <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                 isSelected ? 'border-[var(--accent)]' : 'border-[var(--border-hover)] group-hover:border-[var(--accent)]/50'
               }`}>

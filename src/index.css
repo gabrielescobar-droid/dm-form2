@@ -18,18 +18,18 @@
   --dm-white: #FFFFFF;
 
   /* LIGHT MODE DEFAULT */
-  --bg: var(--dm-white);
+  --bg: var(--dm-paper);
   --fg: var(--dm-ink);
-  --fg-muted: #4a4f60;
-  --border: rgba(1, 14, 51, 0.08);
-  --border-hover: rgba(1, 14, 51, 0.15);
+  --fg-muted: #2f3446;
+  --border: rgba(1, 14, 51, 0.15);
+  --border-hover: rgba(1, 14, 51, 0.3);
   --accent: var(--dm-navy);
   --accent-hover: #010E33;
   --accent-fg: var(--dm-white);
   
-  --card-bg: rgba(255, 255, 255, 0.8);
-  --card-border: rgba(1, 14, 51, 0.08);
-  --card-shadow: 0 8px 32px rgba(1, 29, 111, 0.05);
+  --card-bg: var(--dm-white);
+  --card-border: rgba(1, 14, 51, 0.15);
+  --card-shadow: 0 8px 32px rgba(1, 29, 111, 0.08);
   
   --grad-deep: linear-gradient(180deg, #F2F0EE 0%, #FFFFFF 100%);
   --grad-radial: radial-gradient(60% 60% at 50% 45%, rgba(1, 29, 111, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
@@ -38,15 +38,15 @@
 .dark {
   --bg: var(--dm-ink);
   --fg: var(--dm-white);
-  --fg-muted: rgba(255, 255, 255, 0.65);
-  --border: rgba(255, 255, 255, 0.1);
-  --border-hover: rgba(255, 255, 255, 0.3);
+  --fg-muted: rgba(255, 255, 255, 0.7);
+  --border: rgba(255, 255, 255, 0.2);
+  --border-hover: rgba(255, 255, 255, 0.4);
   --accent: #3872EE;
   --accent-hover: #5a8cf0;
   --accent-fg: var(--dm-white);
 
   --card-bg: rgba(255, 255, 255, 0.03);
-  --card-border: rgba(255, 255, 255, 0.08);
+  --card-border: rgba(255, 255, 255, 0.1);
   --card-shadow: 0 0 28px rgba(56, 114, 238, 0.15);
   
   --grad-deep: linear-gradient(180deg, #011D6F 0%, #010E33 100%);
