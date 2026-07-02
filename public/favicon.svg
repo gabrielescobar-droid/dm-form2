@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0A0A0A" />
+  <defs>
+    <linearGradient id="dm-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#999999" />
+    </linearGradient>
+  </defs>
+  <text x="50%" y="54%" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="240" fill="url(#dm-grad)" text-anchor="middle" alignment-baseline="middle" letter-spacing="-8">DM</text>
+</svg>
