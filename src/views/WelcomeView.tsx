@@ -2,6 +2,7 @@ import React from 'react';
 import { GlassCard } from '../components/GlassCard';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
+import { trackEvent } from '../utils/analytics';
 
 export function WelcomeView({ onNext }: { onNext: () => void }) {
   return (
@@ -16,24 +17,29 @@ export function WelcomeView({ onNext }: { onNext: () => void }) {
           Congratulations!
         </h1>
         
-        <div className="text-left space-y-4 text-[var(--fg)] leading-relaxed mb-6 font-light text-base md:text-lg">
+        <div className="text-left space-y-4 text-[var(--fg)] leading-relaxed mb-8 font-light text-base md:text-lg">
           <p>
-            You have successfully booked your <strong><u>orientation session</u></strong>! We are thrilled to welcome you to Decentralized Masters.
+            You have successfully booked your <strong>Orientation Session</strong>! We are thrilled to welcome you.
           </p>
           <p>
-            The next person you will meet is your dedicated <strong><u>Onboarding Specialist</u></strong>. They will show you where to find our <em>exclusive courses</em>, how to join the <em>live sessions</em>, and how to interact with the community.
-          </p>
-          <p>
-            Please complete this short form so we can provide you with a <strong><u>personalized experience</u></strong> right from the start.
+            Before you meet your mentor, you'll connect with your dedicated <strong>Onboarding Specialist</strong>. They will show you how to use Circle—the platform for our exclusive courses, live sessions, and much more.
           </p>
         </div>
 
-        <button
-          onClick={onNext}
-          className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] active:scale-95 font-medium py-3.5 px-8 rounded-xl transition-all duration-200 inline-flex items-center gap-2 border border-[var(--border)] shadow-lg"
-        >
-          Continue to Form <ArrowRight size={18} />
-        </button>
+        <div className="flex flex-col items-center gap-3 mt-4">
+          <p className="text-sm text-[var(--fg-muted)] font-medium">
+            Please complete this short form so we can provide a personalized experience.
+          </p>
+          <button
+            onClick={() => {
+              trackEvent('start_form_clicked');
+              onNext();
+            }}
+            className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] active:scale-95 font-medium py-3.5 px-8 rounded-xl transition-all duration-200 inline-flex items-center gap-2 border border-[var(--border)] shadow-lg w-full md:w-auto justify-center"
+          >
+            Continue to Form <ArrowRight size={18} />
+          </button>
+        </div>
       </GlassCard>
     </motion.div>
   );

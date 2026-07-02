@@ -4,6 +4,7 @@ import { GlassCard } from '../components/GlassCard';
 import { ScrollableArea } from '../components/ScrollableArea';
 import { FormData } from '../types';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { trackEvent } from '../utils/analytics';
 
 const TIMEZONES = [
   'US Eastern', 'US Central', 'US Mountain', 'US Pacific', 'Central Europe', 'Sydney', 'Other'
@@ -21,8 +22,13 @@ export function FormView({ formData, updateData, onComplete }: Props) {
   const totalSteps = 7;
 
   const nextStep = () => {
-    if (step < totalSteps) setStep(step + 1);
-    else onComplete();
+    trackEvent('form_step_completed', { step_number: step });
+    if (step < totalSteps) {
+      setStep(step + 1);
+    } else {
+      trackEvent('form_fully_completed');
+      onComplete();
+    }
   };
 
   const prevStep = () => {
@@ -30,6 +36,10 @@ export function FormView({ formData, updateData, onComplete }: Props) {
   };
 
   const progress = (step / totalSteps) * 100;
+
+  React.useEffect(() => {
+    trackEvent('form_step_viewed', { step_number: step });
+  }, [step]);
 
   return (
     <motion.div
@@ -121,7 +131,11 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                   </div>
 
                   <button
-                    onClick={nextStep}
+                    onClick={() => {
+                      trackEvent('question_answered', { question: 'timezone', answer: formData.timezone });
+                      trackEvent('question_answered', { question: 'franja', answer: formData.franja.join(',') });
+                      nextStep();
+                    }}
                     disabled={!formData.timezone || formData.franja.length === 0}
                     className="mt-4 w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] text-[var(--accent-fg)] font-medium py-4 px-8 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 border border-transparent shadow-lg"
                   >
@@ -138,6 +152,7 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                   value={formData.laptop}
                   onChange={(val) => {
                     updateData({ laptop: val });
+                    trackEvent('question_answered', { question: 'laptop', answer: val });
                     setTimeout(nextStep, 300);
                   }}
                 />
@@ -151,6 +166,7 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                   value={formData.zoom}
                   onChange={(val) => {
                     updateData({ zoom: val });
+                    trackEvent('question_answered', { question: 'zoom', answer: val });
                     setTimeout(nextStep, 300);
                   }}
                 />
@@ -164,6 +180,7 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                   value={formData.circle}
                   onChange={(val) => {
                     updateData({ circle: val });
+                    trackEvent('question_answered', { question: 'circle', answer: val });
                     setTimeout(nextStep, 300);
                   }}
                 />
@@ -177,6 +194,7 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                   value={formData.mouseTouchpad}
                   onChange={(val) => {
                     updateData({ mouseTouchpad: val });
+                    trackEvent('question_answered', { question: 'mouseTouchpad', answer: val });
                     setTimeout(nextStep, 300);
                   }}
                 />
@@ -190,6 +208,7 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                   value={formData.windowsMac}
                   onChange={(val) => {
                     updateData({ windowsMac: val });
+                    trackEvent('question_answered', { question: 'windowsMac', answer: val });
                     setTimeout(nextStep, 300);
                   }}
                 />
@@ -208,7 +227,12 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                   />
 
                   <button
-                    onClick={nextStep}
+                    onClick={() => {
+                      if (formData.anythingElse) {
+                        trackEvent('question_answered', { question: 'anythingElse', answer: 'provided' });
+                      }
+                      nextStep();
+                    }}
                     className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-[var(--accent-fg)] font-medium py-4 px-8 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg"
                   >
                     Awesome. You're ready to master DeFi! <Check size={18} />

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { GlassCard } from '../components/GlassCard';
 import { ScrollableArea } from '../components/ScrollableArea';
 import { CheckCircle2, Copy, Mail } from 'lucide-react';
+import { trackEvent } from '../utils/analytics';
 
 export function SuccessView() {
   const [copied, setCopied] = useState(false);
@@ -11,6 +12,7 @@ export function SuccessView() {
   const handleCopy = () => {
     navigator.clipboard.writeText(emailSender);
     setCopied(true);
+    trackEvent('copy_email_sender', { email: emailSender });
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -96,6 +98,7 @@ export function SuccessView() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackEvent('email_provider_clicked', { provider: link.name })}
                     className="bg-[var(--border)] hover:bg-[var(--border-hover)] border border-transparent text-center py-3 px-4 rounded-xl text-[var(--fg)] text-sm font-medium transition-all hover:-translate-y-1"
                   >
                     {link.name}

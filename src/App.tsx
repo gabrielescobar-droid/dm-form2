@@ -7,10 +7,15 @@ import { SuccessView } from './views/SuccessView';
 import { AdminView } from './views/AdminView';
 import { FormData, INITIAL_FORM_DATA } from './types';
 import { Moon, Sun } from 'lucide-react';
+import { trackPageView } from './utils/analytics';
 
 function MainApp() {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [currentView, setCurrentView] = useState<'welcome' | 'form' | 'success'>('welcome');
+
+  useEffect(() => {
+    trackPageView(`/${currentView}`);
+  }, [currentView]);
 
   return (
     <div className="flex-1 flex items-center justify-center px-4 pb-4 md:px-6 w-full max-w-7xl mx-auto relative z-10">
