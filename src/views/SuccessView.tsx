@@ -5,9 +5,10 @@ import { ScrollableArea } from '../components/ScrollableArea';
 import { CheckCircle2, Copy, Mail, ArrowRight, AlertTriangle, Monitor, Smartphone } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
 
-export function SuccessView() {
+export const SuccessView: React.FC<{ key?: string }> = () => {
   const [copied, setCopied] = useState(false);
   const [showDeviceAlert, setShowDeviceAlert] = useState(false);
+  const [showSteps, setShowSteps] = useState(false);
   const emailSender = "no-reply@notification.circle.so";
 
   const handleCopy = () => {
@@ -25,7 +26,7 @@ export function SuccessView() {
   const handleContinueAnyway = () => {
     trackEvent('continue_to_circle_anyway');
     setShowDeviceAlert(false);
-    window.open('https://circle.so', '_blank');
+    setShowSteps(true);
   };
 
   const emailLinks = [
@@ -45,97 +46,111 @@ export function SuccessView() {
         <GlassCard className="flex-1 flex flex-col p-0 md:p-0 overflow-hidden relative max-h-[80vh]">
           <ScrollableArea className="flex-1 px-6 md:px-12 py-8">
             
-            <div className="text-center mb-8">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
-                className="w-16 h-16 bg-[#1bbd7c]/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_4px_30px_rgba(27,189,124,0.15)]"
-              >
-                <CheckCircle2 size={32} className="text-[#1bbd7c]" />
-              </motion.div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--fg)] mb-2">
-                All set! You're ready to begin.
-              </h1>
-
-              <div className="mt-8 mb-6 flex flex-col items-center">
-                <button
-                  onClick={handleGetIntoCircle}
-                  className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] active:scale-95 py-4 px-8 rounded-2xl transition-all duration-200 flex flex-col items-center gap-1 border border-transparent shadow-lg hover:shadow-xl w-full sm:w-auto"
+            <AnimatePresence mode="wait">
+              {!showSteps ? (
+                <motion.div 
+                  key="welcome-done"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="text-center py-12"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold">Get into Circle now</span>
-                    <ArrowRight size={20} />
-                  </div>
-                </button>
-                <p className="text-sm text-[var(--fg-muted)] mt-3 font-medium max-w-xs mx-auto">
-                  This is our platform where we centralize everything: courses, live sessions, and community.
-                </p>
-              </div>
-            </div>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
+                    className="w-16 h-16 bg-[#1bbd7c]/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_4px_30px_rgba(27,189,124,0.15)]"
+                  >
+                    <CheckCircle2 size={32} className="text-[#1bbd7c]" />
+                  </motion.div>
+                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--fg)] mb-2">
+                    All set! You're ready to begin.
+                  </h1>
 
-            <div className="space-y-8 bg-[var(--bg)] p-6 md:p-8 rounded-2xl border border-[var(--border)] shadow-sm">
-              <div>
-                <h2 className="text-xl md:text-2xl font-bold text-dm-gradient mb-4">Getting Into Circle</h2>
-                <p className="text-[var(--fg-muted)] text-sm md:text-base leading-relaxed mb-6">
-                  This is the first step, and the one that trips up about 1 in 3 people. Take it slow.
-                </p>
-              </div>
-
-              <ol className="space-y-6 relative border-l border-[var(--border)] ml-3 md:ml-4">
-                <StepItem number={1}>
-                  Open the email you signed up with and search for the sender:
-                  <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2">
-                    <code className="bg-[var(--card-bg)] px-3 py-2 rounded-lg text-[var(--accent)] font-mono text-xs md:text-sm border border-[var(--border)] break-all flex-1">
-                      {emailSender}
-                    </code>
-                    <button 
-                      onClick={handleCopy}
-                      className="p-2 bg-[var(--border)] hover:bg-[var(--border-hover)] rounded-lg transition-colors flex items-center justify-center gap-2 text-xs text-[var(--fg)] min-w-[80px]"
+                  <div className="mt-8 mb-6 flex flex-col items-center">
+                    <button
+                      onClick={handleGetIntoCircle}
+                      className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] active:scale-95 py-4 px-8 rounded-2xl transition-all duration-200 flex flex-col items-center gap-1 border border-transparent shadow-lg hover:shadow-xl w-full sm:w-auto"
                     >
-                      {copied ? <CheckCircle2 size={16} className="text-[#1bbd7c]" /> : <Copy size={16} />}
-                      {copied ? 'Copied' : 'Copy'}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold">Get into Circle now</span>
+                        <ArrowRight size={20} />
+                      </div>
                     </button>
+                    <p className="text-sm text-[var(--fg-muted)] mt-3 font-medium max-w-xs mx-auto">
+                      This is our platform where we centralize everything: courses, live sessions, and community.
+                    </p>
                   </div>
-                </StepItem>
-                
-                <StepItem number={2}>
-                  Open the email titled <strong>"Welcome to the DeFi Clan"</strong> or <strong>"Decentralized Masters Sent you an Invitation"</strong>.
-                </StepItem>
-                
-                <StepItem number={3}>
-                  Click the black <strong>Accept Invitation</strong> button inside the email.
-                </StepItem>
-                
-                <StepItem number={4}>
-                  A new tab opens on Circle. Fill in your details to finish your sign-up.
-                </StepItem>
-              </ol>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="circle-steps"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8 bg-[var(--bg)] p-6 md:p-8 rounded-2xl border border-[var(--border)] shadow-sm"
+                >
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-bold text-dm-gradient mb-4">Getting Into Circle</h2>
+                    <p className="text-[var(--fg-muted)] text-sm md:text-base leading-relaxed mb-6">
+                      This is the first step, and the one that trips up about 1 in 3 people. Take it slow.
+                    </p>
+                  </div>
 
-              <div className="pt-6 mt-6 border-t border-[var(--border)]">
-                <h3 className="text-sm font-bold text-[var(--fg)] uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Mail size={16} /> Fast Search Shortcuts
-                </h3>
-                <p className="text-sm text-[var(--fg-muted)] mb-4">
-                  Instead of searching by hand, tap your email provider below to jump straight to the invite.
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {emailLinks.map(link => (
-                    <a
-                      key={link.name}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => trackEvent('email_provider_clicked', { provider: link.name })}
-                      className="bg-[var(--border)] hover:bg-[var(--border-hover)] border border-transparent text-center py-3 px-4 rounded-xl text-[var(--fg)] text-sm font-medium transition-all hover:-translate-y-1"
-                    >
-                      {link.name}
-                    </a>
-                  ))}
-                </div>
-              </div>
+                  <ol className="space-y-6 relative border-l border-[var(--border)] ml-3 md:ml-4">
+                    <StepItem number={1}>
+                      Open the email you signed up with and search for the sender:
+                      <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2">
+                        <code className="bg-[var(--card-bg)] px-3 py-2 rounded-lg text-[var(--accent)] font-mono text-xs md:text-sm border border-[var(--border)] break-all flex-1">
+                          {emailSender}
+                        </code>
+                        <button 
+                          onClick={handleCopy}
+                          className="p-2 bg-[var(--border)] hover:bg-[var(--border-hover)] rounded-lg transition-colors flex items-center justify-center gap-2 text-xs text-[var(--fg)] min-w-[80px]"
+                        >
+                          {copied ? <CheckCircle2 size={16} className="text-[#1bbd7c]" /> : <Copy size={16} />}
+                          {copied ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
+                    </StepItem>
+                    
+                    <StepItem number={2}>
+                      Open the email titled <strong>"Welcome to the DeFi Clan"</strong> or <strong>"Decentralized Masters Sent you an Invitation"</strong>.
+                    </StepItem>
+                    
+                    <StepItem number={3}>
+                      Click the black <strong>Accept Invitation</strong> button inside the email.
+                    </StepItem>
+                    
+                    <StepItem number={4}>
+                      A new tab opens on Circle. Fill in your details to finish your sign-up.
+                    </StepItem>
+                  </ol>
 
-            </div>
+                  <div className="pt-6 mt-6 border-t border-[var(--border)]">
+                    <h3 className="text-sm font-bold text-[var(--fg)] uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <Mail size={16} /> Fast Search Shortcuts
+                    </h3>
+                    <p className="text-sm text-[var(--fg-muted)] mb-4">
+                      Instead of searching by hand, tap your email provider below to jump straight to the invite.
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {emailLinks.map(link => (
+                        <a
+                          key={link.name}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => trackEvent('email_provider_clicked', { provider: link.name })}
+                          className="bg-[var(--border)] hover:bg-[var(--border-hover)] border border-transparent text-center py-3 px-4 rounded-xl text-[var(--fg)] text-sm font-medium transition-all hover:-translate-y-1"
+                        >
+                          {link.name}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
           </ScrollableArea>
         </GlassCard>

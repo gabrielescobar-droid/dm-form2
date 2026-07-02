@@ -1,4 +1,5 @@
 export type FormData = {
+  email: string;
   timezone: string;
   franja: string[];
   laptop: string;
@@ -10,6 +11,7 @@ export type FormData = {
 };
 
 export const INITIAL_FORM_DATA: FormData = {
+  email: '',
   timezone: '',
   franja: [],
   laptop: '',

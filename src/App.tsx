@@ -7,7 +7,9 @@ import { SuccessView } from './views/SuccessView';
 import { AdminView } from './views/AdminView';
 import { FormData, INITIAL_FORM_DATA } from './types';
 import { Moon, Sun } from 'lucide-react';
-import { trackPageView } from './utils/analytics';
+import { trackPageView, trackEvent } from './utils/analytics';
+import { db } from './firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 function MainApp() {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
@@ -16,6 +18,20 @@ function MainApp() {
   useEffect(() => {
     trackPageView(`/${currentView}`);
   }, [currentView]);
+
+  const handleFormComplete = async () => {
+    try {
+      await addDoc(collection(db, 'form_submissions'), {
+        ...formData,
+        createdAt: serverTimestamp()
+      });
+      trackEvent('form_submission_success');
+    } catch (error) {
+      console.error('Error submitting form', error);
+      trackEvent('form_submission_error', { error: String(error) });
+    }
+    setCurrentView('success');
+  };
 
   return (
     <div className="flex-1 flex items-center justify-center px-4 pb-4 md:px-6 w-full max-w-7xl mx-auto relative z-10">
@@ -28,7 +44,7 @@ function MainApp() {
             key="form"
             formData={formData} 
             updateData={(data) => setFormData(prev => ({ ...prev, ...data }))}
-            onComplete={() => setCurrentView('success')} 
+            onComplete={handleFormComplete} 
           />
         )}
         {currentView === 'success' && (

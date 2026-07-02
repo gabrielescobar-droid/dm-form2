@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
 
-export function WelcomeView({ onNext }: { onNext: () => void }) {
+export const WelcomeView: React.FC<{ key?: string; onNext: () => void }> = ({ onNext }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

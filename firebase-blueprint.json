@@ -1,0 +1,26 @@
+{
+  "collections": [
+    {
+      "name": "form_submissions",
+      "description": "Stores user onboarding form submissions.",
+      "securityRules": {
+        "read": "request.auth != null",
+        "create": "true",
+        "update": "false",
+        "delete": "false"
+      },
+      "fields": [
+        { "name": "email", "type": "string" },
+        { "name": "timezone", "type": "string" },
+        { "name": "franja", "type": "array" },
+        { "name": "laptop", "type": "string" },
+        { "name": "zoom", "type": "string" },
+        { "name": "circle", "type": "string" },
+        { "name": "mouseTouchpad", "type": "string" },
+        { "name": "windowsMac", "type": "string" },
+        { "name": "anythingElse", "type": "string" },
+        { "name": "createdAt", "type": "timestamp" }
+      ]
+    }
+  ]
+}

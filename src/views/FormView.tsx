@@ -12,14 +12,15 @@ const TIMEZONES = [
 const FRANJAS = ['Morning', 'Afternoon', 'Evening'];
 
 interface Props {
+  key?: string;
   formData: FormData;
   updateData: (data: Partial<FormData>) => void;
-  onComplete: () => void;
+  onComplete: () => void | Promise<void>;
 }
 
-export function FormView({ formData, updateData, onComplete }: Props) {
+export const FormView: React.FC<Props> = ({ formData, updateData, onComplete }) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 7;
+  const totalSteps = 8;
 
   const nextStep = () => {
     trackEvent('form_step_completed', { step_number: step });
@@ -85,6 +86,34 @@ export function FormView({ formData, updateData, onComplete }: Props) {
               className="flex flex-col gap-6"
             >
               {step === 1 && (
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-bold text-dm-gradient">What's your best email?</h2>
+                  <p className="text-[var(--fg-muted)] text-sm">We'll use this to find your profile and keep your information in our database.</p>
+                  
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => updateData({ email: e.target.value })}
+                    placeholder="Enter your email address"
+                    className="w-full bg-[var(--bg)] border-2 border-[var(--border)] hover:border-[var(--border-hover)] rounded-xl p-4 text-[var(--fg)] font-medium focus:outline-none focus:border-[var(--accent)] transition-colors shadow-sm"
+                  />
+
+                  <button
+                    onClick={() => {
+                      if (formData.email) {
+                        trackEvent('question_answered', { question: 'email', answer: 'provided' });
+                        nextStep();
+                      }
+                    }}
+                    disabled={!formData.email || !formData.email.includes('@')}
+                    className="mt-4 w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] text-[var(--accent-fg)] font-medium py-4 px-8 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 border border-transparent shadow-lg"
+                  >
+                    Next <ArrowRight size={18} />
+                  </button>
+                </div>
+              )}
+
+              {step === 2 && (
                 <div className="space-y-8">
                   <h2 className="text-2xl font-bold text-dm-gradient">Best time to reach you</h2>
                   
@@ -149,7 +178,7 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                 </div>
               )}
 
-              {step === 2 && (
+              {step === 3 && (
                 <RadioQuestion
                   title="Tech check"
                   subtitle="Will you be using a laptop or desktop computer?"
@@ -163,7 +192,7 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                 />
               )}
 
-              {step === 3 && (
+              {step === 4 && (
                 <RadioQuestion
                   title="Zoom desktop app"
                   subtitle="Do you have the Zoom desktop app installed?"
@@ -177,7 +206,7 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                 />
               )}
 
-              {step === 4 && (
+              {step === 5 && (
                 <RadioQuestion
                   title="Circle community"
                   subtitle="Have you joined our Circle community platform?"
@@ -191,7 +220,7 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                 />
               )}
 
-              {step === 5 && (
+              {step === 6 && (
                 <RadioQuestion
                   title="Your setup"
                   subtitle="Are you using a Mouse or a Touchpad?"
@@ -205,7 +234,7 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                 />
               )}
 
-              {step === 6 && (
+              {step === 7 && (
                 <RadioQuestion
                   title="Operating System"
                   subtitle="Are you on Windows or Mac?"
@@ -219,7 +248,7 @@ export function FormView({ formData, updateData, onComplete }: Props) {
                 />
               )}
 
-              {step === 7 && (
+              {step === 8 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-dm-gradient">Anything to cover?</h2>
                   <p className="text-[var(--fg-muted)] text-sm">Is there anything specific you'd like us to know before the session? (Optional)</p>
