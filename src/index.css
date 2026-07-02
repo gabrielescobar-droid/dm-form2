@@ -1,0 +1,112 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap');
+
+@theme {
+  --font-sans: "Helvetica Neue", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Helvetica Neue", "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-dm-navy: #011D6F;
+  --color-dm-ink: #010E33;
+  --color-dm-paper: #F2F0EE;
+  --color-dm-white: #FFFFFF;
+}
+
+:root {
+  --dm-navy: #011D6F;
+  --dm-ink: #010E33;
+  --dm-paper: #F2F0EE;
+  --dm-white: #FFFFFF;
+
+  /* LIGHT MODE DEFAULT */
+  --bg: var(--dm-white);
+  --fg: var(--dm-ink);
+  --fg-muted: #4a4f60;
+  --border: rgba(1, 14, 51, 0.08);
+  --border-hover: rgba(1, 14, 51, 0.15);
+  --accent: var(--dm-navy);
+  --accent-hover: #010E33;
+  --accent-fg: var(--dm-white);
+  
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(1, 14, 51, 0.08);
+  --card-shadow: 0 8px 32px rgba(1, 29, 111, 0.05);
+  
+  --grad-deep: linear-gradient(180deg, #F2F0EE 0%, #FFFFFF 100%);
+  --grad-radial: radial-gradient(60% 60% at 50% 45%, rgba(1, 29, 111, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+}
+
+.dark {
+  --bg: var(--dm-ink);
+  --fg: var(--dm-white);
+  --fg-muted: rgba(255, 255, 255, 0.65);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(255, 255, 255, 0.3);
+  --accent: #3872EE;
+  --accent-hover: #5a8cf0;
+  --accent-fg: var(--dm-white);
+
+  --card-bg: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 0 28px rgba(56, 114, 238, 0.15);
+  
+  --grad-deep: linear-gradient(180deg, #011D6F 0%, #010E33 100%);
+  --grad-radial: radial-gradient(60% 60% at 50% 45%, rgba(1,29,111,0.55) 0%, rgba(1,14,51,0.0) 70%);
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Helvetica Neue", "Inter", sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+  background-image: var(--grad-radial), var(--grad-deep);
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Glassmorphism utility */
+.liquid-glass {
+  background: var(--card-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
+}
+
+.dm-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.dm-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dm-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+.dm-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* Typography elements */
+.text-dm-gradient {
+  background: linear-gradient(90deg, var(--accent) 0%, var(--fg) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.dark .text-dm-gradient {
+  background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.7) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
