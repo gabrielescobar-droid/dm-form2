@@ -48,7 +48,12 @@ export function AdminView() {
     try {
       await signInWithPopup(auth, provider);
     } catch (err: any) {
-      setError(err.message);
+      console.error(err);
+      if (err.code === 'auth/popup-closed-by-user' || err.message.includes('popup')) {
+        setError('Popup closed or blocked. If you are viewing this in an embedded preview, please open the app in a new tab to sign in.');
+      } else {
+        setError(err.message + ' (Try opening the app in a new tab if this persists)');
+      }
     }
   };
 
@@ -110,6 +115,13 @@ export function AdminView() {
             Sign in with Google
           </button>
           
+          <button 
+            onClick={() => window.open(window.location.href, '_blank')}
+            className="w-full mt-3 bg-[var(--card-bg)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--fg)] font-medium py-3.5 px-6 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+          >
+            Open in New Tab (Fixes Login)
+          </button>
+
           <Link 
             to="/"
             className="block mt-4 text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
