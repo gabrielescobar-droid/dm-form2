@@ -76,6 +76,38 @@ export function AdminView() {
     }
   };
 
+  const getMetrics = () => {
+    const total = submissions.length;
+    if (total === 0) return null;
+    
+    const countIf = (key: keyof Submission, checkValue: string) => {
+       return submissions.filter(s => {
+         const v = s[key] as string;
+         if (!v) return false;
+         return v.toLowerCase().includes(checkValue.toLowerCase());
+       }).length;
+    };
+
+    const hasZoom = countIf('zoom', 'sí');
+    const isMac = countIf('windowsMac', 'mac');
+    const isWindows = countIf('windowsMac', 'windows');
+    const hasLaptop = countIf('laptop', 'sí');
+    const hasJoinedCircle = countIf('circle', 'sí');
+    const hasMouse = countIf('mouseTouchpad', 'mouse');
+    
+    return {
+      total,
+      zoom: { count: hasZoom, pct: Math.round((hasZoom / total) * 100) },
+      mac: { count: isMac, pct: Math.round((isMac / total) * 100) },
+      windows: { count: isWindows, pct: Math.round((isWindows / total) * 100) },
+      laptop: { count: hasLaptop, pct: Math.round((hasLaptop / total) * 100) },
+      circle: { count: hasJoinedCircle, pct: Math.round((hasJoinedCircle / total) * 100) },
+      mouse: { count: hasMouse, pct: Math.round((hasMouse / total) * 100) },
+    };
+  };
+
+  const metrics = getMetrics();
+
   if (!isAuthenticated) {
     return (
       <div className="w-full max-w-md mx-auto mt-12 px-4">
@@ -178,13 +210,17 @@ export function AdminView() {
                 </div>
               </div>
 
-              <DetailItem label="Timezone" value={selectedSubmission.timezone} />
-              <DetailItem label="Availability" value={selectedSubmission.franja.join(', ')} />
-              <DetailItem label="Using Laptop" value={selectedSubmission.laptop} />
-              <DetailItem label="Zoom Installed" value={selectedSubmission.zoom} />
-              <DetailItem label="Joined Circle" value={selectedSubmission.circle} />
-              <DetailItem label="Mouse/Touchpad" value={selectedSubmission.mouseTouchpad} />
-              <DetailItem label="OS" value={selectedSubmission.windowsMac} />
+              <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-5 shadow-sm col-span-1 md:col-span-2">
+                <div className="flex flex-col">
+                  <DetailRow label="Timezone" value={selectedSubmission.timezone} />
+                  <DetailRow label="Availability" value={selectedSubmission.franja.join(', ')} />
+                  <DetailRow label="Using Laptop" value={selectedSubmission.laptop} />
+                  <DetailRow label="Zoom Installed" value={selectedSubmission.zoom} />
+                  <DetailRow label="Joined Circle" value={selectedSubmission.circle} />
+                  <DetailRow label="Mouse/Touchpad" value={selectedSubmission.mouseTouchpad} />
+                  <DetailRow label="OS" value={selectedSubmission.windowsMac} />
+                </div>
+              </div>
               
               <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-5 shadow-sm col-span-1 md:col-span-2">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--fg-muted)] mb-2">Additional Notes</h3>
@@ -207,6 +243,20 @@ export function AdminView() {
               </div>
             </div>
 
+            {metrics && (
+              <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl p-6 shadow-sm space-y-4">
+                <h3 className="font-bold text-sm text-[var(--fg-muted)] border-b border-[var(--border)] pb-2">Insights</h3>
+                <div className="space-y-3">
+                  <MetricRow label="Zoom Installed" count={metrics.zoom.count} pct={metrics.zoom.pct} />
+                  <MetricRow label="Mac Users" count={metrics.mac.count} pct={metrics.mac.pct} />
+                  <MetricRow label="Windows Users" count={metrics.windows.count} pct={metrics.windows.pct} />
+                  <MetricRow label="Using Laptop" count={metrics.laptop.count} pct={metrics.laptop.pct} />
+                  <MetricRow label="Using Mouse" count={metrics.mouse.count} pct={metrics.mouse.pct} />
+                  <MetricRow label="Joined Circle" count={metrics.circle.count} pct={metrics.circle.pct} />
+                </div>
+              </div>
+            )}
+            
             <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-2 text-[var(--fg-muted)]">
                 <Activity size={20} />
@@ -264,11 +314,28 @@ export function AdminView() {
   );
 }
 
-function DetailItem({ label, value }: { label: string; value: string }) {
+function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-5 shadow-sm">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--fg-muted)] mb-1">{label}</h3>
-      <div className="text-[var(--fg)] font-medium">{value}</div>
+    <div className="flex justify-between items-center py-2.5 border-b border-[var(--border)] last:border-0 gap-4">
+      <span className="text-sm font-medium text-[var(--fg-muted)]">{label}</span>
+      <span className="text-sm font-bold text-[var(--fg)] text-right">{value}</span>
+    </div>
+  );
+}
+
+function MetricRow({ label, count, pct }: { label: string; count: number; pct: number }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex justify-between text-xs">
+        <span className="font-medium text-[var(--fg)]">{label}</span>
+        <span className="font-bold text-[var(--fg-muted)]">{count} ({pct}%)</span>
+      </div>
+      <div className="w-full h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" 
+          style={{ width: `${pct}%` }}
+        />
+      </div>
     </div>
   );
 }
