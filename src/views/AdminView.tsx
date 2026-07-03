@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../components/GlassCard';
-import { Shield, ArrowLeft, ArrowRight, LogOut, Loader2, Users, Search, Activity, Mail } from 'lucide-react';
+import { Shield, ArrowLeft, ArrowRight, LogOut, Loader2, Users, Search, Activity, Mail, Download, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { FormData } from '../types';
 import { ScrollableArea } from '../components/ScrollableArea';
 import { format } from 'date-fns';
@@ -43,6 +43,52 @@ export function AdminView() {
     setIsAuthenticated(false);
     sessionStorage.removeItem('adminAuth');
     setSubmissions([]);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this submission? This action cannot be undone.')) {
+      try {
+        await deleteDoc(doc(db, 'form_submissions', id));
+        setSubmissions(prev => prev.filter(s => s.id !== id));
+        if (selectedSubmission?.id === id) {
+          setSelectedSubmission(null);
+        }
+      } catch (err: any) {
+        setError('Error deleting submission: ' + err.message);
+      }
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (submissions.length === 0) return;
+    const headers = ['ID', 'Email', 'Timezone', 'Availability', 'Laptop', 'Zoom', 'Circle', 'Mouse/Touchpad', 'OS', 'Anything Else', 'Date'];
+    const rows = submissions.map(sub => [
+      sub.id,
+      sub.email,
+      sub.timezone,
+      sub.franja.join('; '),
+      sub.laptop,
+      sub.zoom,
+      sub.circle,
+      sub.mouseTouchpad,
+      sub.windowsMac,
+      sub.anythingElse.replace(/\n/g, ' '),
+      format(sub.createdAt, 'yyyy-MM-dd HH:mm:ss')
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(e => e.map(field => `"${field}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `DM_Submissions_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const fetchSubmissions = async () => {
@@ -190,7 +236,16 @@ export function AdminView() {
               </button>
               <h2 className="font-bold text-[var(--fg)]">Submission Details</h2>
             </div>
-            <span className="text-xs font-mono text-[var(--fg-muted)] bg-[var(--border)] px-2 py-1 rounded-md">{selectedSubmission.id}</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono text-[var(--fg-muted)] bg-[var(--border)] px-2 py-1 rounded-md">{selectedSubmission.id}</span>
+              <button
+                onClick={() => handleDelete(selectedSubmission.id)}
+                className="p-1.5 rounded-md hover:bg-[#e0455a]/10 text-[#e0455a] transition-colors"
+                title="Delete submission"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
           </div>
           <ScrollableArea className="flex-1 p-6">
             <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -271,10 +326,17 @@ export function AdminView() {
 
           {/* Submissions List */}
           <GlassCard className="flex-1 flex flex-col p-0 overflow-hidden relative">
-            <div className="p-4 border-b border-[var(--border)] bg-[var(--card-bg)] sticky top-0 z-10">
+            <div className="p-4 border-b border-[var(--border)] bg-[var(--card-bg)] sticky top-0 z-10 flex items-center justify-between">
               <h2 className="font-bold text-[var(--fg)] flex items-center gap-2">
                 <Search size={18} /> Responses
               </h2>
+              <button
+                onClick={handleExportCSV}
+                disabled={submissions.length === 0}
+                className="flex items-center gap-2 p-1.5 px-3 bg-[var(--accent)] text-[var(--accent-fg)] text-xs font-medium rounded-md hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
+              >
+                <Download size={14} /> Export CSV
+              </button>
             </div>
             
             <ScrollableArea className="flex-1">

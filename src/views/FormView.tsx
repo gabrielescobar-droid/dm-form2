@@ -123,7 +123,7 @@ export const FormView: React.FC<Props> = ({ formData, updateData, onComplete }) 
                       <select
                         value={formData.timezone}
                         onChange={(e) => updateData({ timezone: e.target.value })}
-                        className="w-full bg-[var(--bg)] border-2 border-[var(--border)] hover:border-[var(--border-hover)] rounded-xl p-4 pr-12 text-[var(--fg)] font-medium appearance-none focus:outline-none focus:border-[var(--accent)] transition-all cursor-pointer shadow-sm"
+                        className="w-full bg-[var(--card-bg)] border-2 border-[var(--border)] hover:border-[var(--accent)] rounded-2xl p-4 pr-12 text-[var(--accent)] font-semibold appearance-none focus:outline-none focus:ring-4 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)] transition-all cursor-pointer shadow-sm text-lg outline-none"
                       >
                         <option value="" disabled>Select your timezone</option>
                         {TIMEZONES.map(tz => (
