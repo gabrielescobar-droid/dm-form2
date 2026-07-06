@@ -12,18 +12,17 @@ service cloud.firestore {
     }
     
     function isValidFormSubmission(data) {
-      return data.keys().hasAll(['email', 'timezone', 'franja', 'laptop', 'zoom', 'circle', 'mouseTouchpad', 'windowsMac', 'anythingElse', 'createdAt']) &&
-             data.keys().size() == 10 &&
-             data.email is string && data.email.size() <= 256 &&
-             data.timezone is string && data.timezone.size() <= 100 &&
-             data.franja is list && data.franja.size() <= 10 && data.franja.size() > 0 && data.franja[0] is string &&
-             data.laptop is string && data.laptop.size() <= 100 &&
-             data.zoom is string && data.zoom.size() <= 100 &&
-             data.circle is string && data.circle.size() <= 100 &&
-             data.mouseTouchpad is string && data.mouseTouchpad.size() <= 100 &&
-             data.windowsMac is string && data.windowsMac.size() <= 100 &&
-             data.anythingElse is string && data.anythingElse.size() <= 2000 &&
-             data.createdAt == request.time;
+      return data.keys().hasAll(['email', 'timezone', 'franja', 'laptop', 'zoom', 'circle', 'mouseTouchpad', 'windowsMac', 'contactMethods', 'anythingElse', 'createdAt']) &&
+             data.email is string &&
+             data.timezone is string &&
+             data.franja is list &&
+             data.laptop is string &&
+             data.zoom is string &&
+             data.circle is string &&
+             data.mouseTouchpad is string &&
+             data.windowsMac is string &&
+             data.contactMethods is list &&
+             data.anythingElse is string;
     }
 
     match /form_submissions/{submissionId} {
@@ -31,6 +30,9 @@ service cloud.firestore {
       allow create: if isValidFormSubmission(request.resource.data);
       allow update: if false;
       allow delete: if true;
+    }
+    match /funnel_tracking/{sessionId} {
+      allow read, create, update: if true;
     }
   }
 }

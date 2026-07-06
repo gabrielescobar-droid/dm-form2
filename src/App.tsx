@@ -9,22 +9,53 @@ import { FormData, INITIAL_FORM_DATA } from './types';
 import { Moon, Sun } from 'lucide-react';
 import { trackPageView, trackEvent } from './utils/analytics';
 import { db } from './firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 
 function MainApp() {
-  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
+  const [formData, setFormData] = useState<FormData>(() => {
+    const savedEmail = localStorage.getItem('dm_saved_email');
+    if (savedEmail) {
+      return { ...INITIAL_FORM_DATA, email: savedEmail };
+    }
+    return INITIAL_FORM_DATA;
+  });
   const [currentView, setCurrentView] = useState<'welcome' | 'form' | 'success'>('welcome');
+  const [sessionId] = useState(() => {
+    let id = sessionStorage.getItem('dm_session_id');
+    if (!id) {
+      id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      sessionStorage.setItem('dm_session_id', id);
+    }
+    return id;
+  });
 
   useEffect(() => {
     trackPageView(`/${currentView}`);
-  }, [currentView]);
+    if (currentView === 'welcome') {
+      setDoc(doc(db, 'funnel_tracking', sessionId), {
+        entered: true,
+        started_form: false,
+        max_step: 0,
+        completed: false,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    }
+  }, [currentView, sessionId]);
 
   const handleFormComplete = async () => {
+    if (formData.email) {
+      localStorage.setItem('dm_saved_email', formData.email);
+    }
     try {
       await addDoc(collection(db, 'form_submissions'), {
         ...formData,
         createdAt: serverTimestamp()
       });
+      await setDoc(doc(db, 'funnel_tracking', sessionId), {
+        completed: true,
+        max_step: 9,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
       trackEvent('form_submission_success');
     } catch (error) {
       console.error('Error submitting form', error);
@@ -33,11 +64,20 @@ function MainApp() {
     setCurrentView('success');
   };
 
+  const handleStartForm = () => {
+    setCurrentView('form');
+    setDoc(doc(db, 'funnel_tracking', sessionId), {
+      started_form: true,
+      max_step: 1,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  };
+
   return (
     <div className="flex-1 flex items-center justify-center px-4 pb-4 md:px-6 w-full max-w-7xl mx-auto relative z-10">
       <AnimatePresence mode="wait">
         {currentView === 'welcome' && (
-          <WelcomeView key="welcome" onNext={() => setCurrentView('form')} />
+          <WelcomeView key="welcome" onNext={handleStartForm} />
         )}
         {currentView === 'form' && (
           <FormView 
@@ -45,6 +85,7 @@ function MainApp() {
             formData={formData} 
             updateData={(data) => setFormData(prev => ({ ...prev, ...data }))}
             onComplete={handleFormComplete} 
+            sessionId={sessionId}
           />
         )}
         {currentView === 'success' && (

@@ -17,6 +17,7 @@ export function AdminView() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('adminAuth') === 'true');
   const [password, setPassword] = useState('');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [funnelStats, setFunnelStats] = useState({ entered: 0, started: 0, maxSteps: {} as Record<number, number>, completed: 0 });
   const [loadingData, setLoadingData] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +62,7 @@ export function AdminView() {
 
   const handleExportCSV = () => {
     if (submissions.length === 0) return;
-    const headers = ['ID', 'Email', 'Timezone', 'Availability', 'Laptop', 'Zoom', 'Circle', 'Mouse/Touchpad', 'OS', 'Anything Else', 'Date'];
+    const headers = ['ID', 'Email', 'Timezone', 'Availability', 'Laptop', 'Zoom', 'Circle', 'Mouse/Touchpad', 'OS', 'Contact Methods', 'Anything Else', 'Date'];
     const rows = submissions.map(sub => [
       sub.id,
       sub.email,
@@ -72,6 +73,7 @@ export function AdminView() {
       sub.circle,
       sub.mouseTouchpad,
       sub.windowsMac,
+      sub.contactMethods?.join('; ') || '',
       sub.anythingElse.replace(/\n/g, ' '),
       format(sub.createdAt, 'yyyy-MM-dd HH:mm:ss')
     ]);
@@ -110,11 +112,31 @@ export function AdminView() {
           circle: data.circle || 'N/A',
           mouseTouchpad: data.mouseTouchpad || 'N/A',
           windowsMac: data.windowsMac || 'N/A',
+          contactMethods: data.contactMethods || [],
           anythingElse: data.anythingElse || '',
           createdAt: data.createdAt?.toDate() || new Date(),
         });
       });
       setSubmissions(subs);
+
+      const funnelQ = query(collection(db, 'funnel_tracking'));
+      const funnelSnap = await getDocs(funnelQ);
+      let entered = 0;
+      let started = 0;
+      let completed = 0;
+      let maxSteps: Record<number, number> = {};
+      
+      funnelSnap.forEach(doc => {
+        const d = doc.data();
+        if (d.entered) entered++;
+        if (d.started_form) started++;
+        if (d.completed) completed++;
+        if (d.max_step !== undefined) {
+          maxSteps[d.max_step] = (maxSteps[d.max_step] || 0) + 1;
+        }
+      });
+      setFunnelStats({ entered, started, completed, maxSteps });
+
     } catch (err: any) {
       setError('Error fetching data. ' + err.message);
     } finally {
@@ -134,12 +156,16 @@ export function AdminView() {
        }).length;
     };
 
-    const hasZoom = countIf('zoom', 'sí');
+    const hasZoom = countIf('zoom', 'sí') || countIf('zoom', 'installed');
     const isMac = countIf('windowsMac', 'mac');
     const isWindows = countIf('windowsMac', 'windows');
-    const hasLaptop = countIf('laptop', 'sí');
-    const hasJoinedCircle = countIf('circle', 'sí');
+    const hasLaptop = countIf('laptop', 'sí') || countIf('laptop', 'yes');
+    const hasJoinedCircle = countIf('circle', 'sí') || countIf('circle', 'i\'m in');
     const hasMouse = countIf('mouseTouchpad', 'mouse');
+    
+    const prefersEmail = submissions.filter(s => s.contactMethods?.includes('Email')).length;
+    const prefersSMS = submissions.filter(s => s.contactMethods?.includes('SMS')).length;
+    const prefersPhone = submissions.filter(s => s.contactMethods?.includes('Phone call')).length;
     
     return {
       total,
@@ -149,6 +175,9 @@ export function AdminView() {
       laptop: { count: hasLaptop, pct: Math.round((hasLaptop / total) * 100) },
       circle: { count: hasJoinedCircle, pct: Math.round((hasJoinedCircle / total) * 100) },
       mouse: { count: hasMouse, pct: Math.round((hasMouse / total) * 100) },
+      email: { count: prefersEmail, pct: Math.round((prefersEmail / total) * 100) },
+      sms: { count: prefersSMS, pct: Math.round((prefersSMS / total) * 100) },
+      phone: { count: prefersPhone, pct: Math.round((prefersPhone / total) * 100) },
     };
   };
 
@@ -274,6 +303,7 @@ export function AdminView() {
                   <DetailRow label="Joined Circle" value={selectedSubmission.circle} />
                   <DetailRow label="Mouse/Touchpad" value={selectedSubmission.mouseTouchpad} />
                   <DetailRow label="OS" value={selectedSubmission.windowsMac} />
+                  <DetailRow label="Contact Preference" value={selectedSubmission.contactMethods?.join(', ') || 'None'} />
                 </div>
               </div>
               
@@ -298,6 +328,26 @@ export function AdminView() {
               </div>
             </div>
 
+            <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl p-6 shadow-sm space-y-4">
+              <h3 className="font-bold text-sm text-[var(--fg-muted)] border-b border-[var(--border)] pb-2">Funnel Metrics</h3>
+              <div className="space-y-3">
+                <MetricRow label="Entered App" count={funnelStats.entered} pct={100} />
+                <MetricRow label="Started Form" count={funnelStats.started} pct={funnelStats.entered ? Math.round((funnelStats.started / funnelStats.entered) * 100) : 0} />
+                <MetricRow label="Completed" count={funnelStats.completed} pct={funnelStats.entered ? Math.round((funnelStats.completed / funnelStats.entered) * 100) : 0} />
+              </div>
+              {Object.keys(funnelStats.maxSteps).length > 0 && (
+                <div className="mt-4 text-xs text-[var(--fg-muted)] space-y-1">
+                  <div className="font-bold mb-2">Drop-offs by Step:</div>
+                  {Object.entries(funnelStats.maxSteps).sort(([a], [b]) => Number(a) - Number(b)).map(([step, count]) => (
+                    <div key={step} className="flex justify-between">
+                      <span>Step {step}</span>
+                      <span>{count} user{count !== 1 ? 's' : ''}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {metrics && (
               <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl p-6 shadow-sm space-y-4">
                 <h3 className="font-bold text-sm text-[var(--fg-muted)] border-b border-[var(--border)] pb-2">Insights</h3>
@@ -308,6 +358,9 @@ export function AdminView() {
                   <MetricRow label="Using Laptop" count={metrics.laptop.count} pct={metrics.laptop.pct} />
                   <MetricRow label="Using Mouse" count={metrics.mouse.count} pct={metrics.mouse.pct} />
                   <MetricRow label="Joined Circle" count={metrics.circle.count} pct={metrics.circle.pct} />
+                  <MetricRow label="Prefers Email" count={metrics.email.count} pct={metrics.email.pct} />
+                  <MetricRow label="Prefers SMS" count={metrics.sms.count} pct={metrics.sms.pct} />
+                  <MetricRow label="Prefers Phone" count={metrics.phone.count} pct={metrics.phone.pct} />
                 </div>
               </div>
             )}

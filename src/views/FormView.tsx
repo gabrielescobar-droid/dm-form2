@@ -5,27 +5,87 @@ import { ScrollableArea } from '../components/ScrollableArea';
 import { FormData } from '../types';
 import { ArrowLeft, ArrowRight, Check, ChevronDown } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
+import { db } from '../firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const TIMEZONES = [
   'US Eastern', 'US Central', 'US Mountain', 'US Pacific', 'Central Europe', 'Sydney', 'Other'
 ];
+
 const FRANJAS = ['Morning', 'Afternoon', 'Evening'];
+
+function CustomDropdown({ value, onChange, options, placeholder }: { value: string, onChange: (val: string) => void, options: string[], placeholder: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between bg-[var(--card-bg)] border-2 border-[var(--border)] hover:border-[var(--accent)] rounded-2xl p-4 text-[var(--accent)] font-semibold focus:outline-none focus:ring-4 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)] transition-all shadow-sm text-lg"
+      >
+        <span>{value || placeholder}</span>
+        <ChevronDown size={20} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="absolute z-50 w-full mt-2 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden"
+            >
+              <div className="max-h-60 overflow-y-auto dm-scroll py-2">
+                {options.map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      onChange(opt);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left px-5 py-3 transition-colors hover:bg-[var(--accent)] hover:text-white ${value === opt ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-bold' : 'text-[var(--fg)] font-medium'}`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 interface Props {
   key?: string;
   formData: FormData;
   updateData: (data: Partial<FormData>) => void;
   onComplete: () => void | Promise<void>;
+  sessionId?: string;
 }
 
-export const FormView: React.FC<Props> = ({ formData, updateData, onComplete }) => {
+export const FormView: React.FC<Props> = ({ formData, updateData, onComplete, sessionId }) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 8;
+  const totalSteps = 9;
 
   const nextStep = () => {
     trackEvent('form_step_completed', { step_number: step });
+    const nextStepNum = step + 1;
+    
+    if (sessionId && nextStepNum <= totalSteps) {
+      setDoc(doc(db, 'funnel_tracking', sessionId), {
+        max_step: nextStepNum,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    }
+
     if (step < totalSteps) {
-      setStep(step + 1);
+      setStep(nextStepNum);
     } else {
       trackEvent('form_fully_completed');
       onComplete();
@@ -94,6 +154,7 @@ export const FormView: React.FC<Props> = ({ formData, updateData, onComplete }) 
                     type="email"
                     value={formData.email}
                     onChange={(e) => updateData({ email: e.target.value })}
+                    autoComplete="email"
                     placeholder="Enter your email address"
                     className="w-full bg-[var(--bg)] border-2 border-[var(--border)] hover:border-[var(--border-hover)] rounded-xl p-4 text-[var(--fg)] font-medium focus:outline-none focus:border-[var(--accent)] transition-colors shadow-sm"
                   />
@@ -119,21 +180,12 @@ export const FormView: React.FC<Props> = ({ formData, updateData, onComplete }) 
                   
                   <div className="space-y-4">
                     <label className="text-sm font-bold text-[var(--fg)]">Timezone</label>
-                    <div className="relative">
-                      <select
-                        value={formData.timezone}
-                        onChange={(e) => updateData({ timezone: e.target.value })}
-                        className="w-full bg-[var(--card-bg)] border-2 border-[var(--border)] hover:border-[var(--accent)] rounded-2xl p-4 pr-12 text-[var(--accent)] font-semibold appearance-none focus:outline-none focus:ring-4 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)] transition-all cursor-pointer shadow-sm text-lg outline-none"
-                      >
-                        <option value="" disabled>Select your timezone</option>
-                        {TIMEZONES.map(tz => (
-                          <option key={tz} value={tz}>{tz}</option>
-                        ))}
-                      </select>
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--fg-muted)]">
-                        <ChevronDown size={20} />
-                      </div>
-                    </div>
+                    <CustomDropdown 
+                      value={formData.timezone} 
+                      onChange={(val) => updateData({ timezone: val })} 
+                      options={TIMEZONES} 
+                      placeholder="Select your timezone" 
+                    />
                   </div>
 
                   <div className="space-y-4">
@@ -249,6 +301,75 @@ export const FormView: React.FC<Props> = ({ formData, updateData, onComplete }) 
               )}
 
               {step === 8 && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-dm-gradient">Contact Preference</h2>
+                    <p className="text-[var(--fg-muted)] text-sm">How do you prefer to be contacted? (Select all that apply)</p>
+                  </div>
+                  
+                  <div className="flex flex-col gap-4">
+                    {['Email', 'SMS', 'Phone call'].map(method => {
+                      const isSelected = formData.contactMethods.includes(method);
+                      return (
+                        <button
+                          key={method}
+                          onClick={() => {
+                            const newMethods = isSelected
+                              ? formData.contactMethods.filter(item => item !== method)
+                              : [...formData.contactMethods, method];
+                            updateData({ contactMethods: newMethods });
+                          }}
+                          className={`w-full p-5 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between group cursor-pointer shadow-sm ${
+                            isSelected 
+                              ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] shadow-[0_4px_12px_rgba(56,114,238,0.1)]' 
+                              : 'bg-[var(--bg)] border-[var(--border)] text-[var(--fg)] hover:border-[var(--border-hover)] hover:bg-[var(--card-bg)] hover:shadow-md'
+                          }`}
+                        >
+                          <span className="font-bold text-lg">{method}</span>
+                          <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${
+                            isSelected ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-[var(--border-hover)] group-hover:border-[var(--accent)]/50'
+                          }`}>
+                            {isSelected && <Check size={14} className="text-white" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                    
+                    <button
+                      onClick={() => {
+                        const allMethods = ['Email', 'SMS', 'Phone call'];
+                        const isAllSelected = allMethods.every(m => formData.contactMethods.includes(m));
+                        updateData({ contactMethods: isAllSelected ? [] : allMethods });
+                      }}
+                      className={`w-full p-5 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between group cursor-pointer shadow-sm ${
+                        ['Email', 'SMS', 'Phone call'].every(m => formData.contactMethods.includes(m))
+                          ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] shadow-[0_4px_12px_rgba(56,114,238,0.1)]' 
+                          : 'bg-[var(--bg)] border-[var(--border)] text-[var(--fg)] hover:border-[var(--border-hover)] hover:bg-[var(--card-bg)] hover:shadow-md'
+                      }`}
+                    >
+                      <span className="font-bold text-lg">All of the above</span>
+                      <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${
+                        ['Email', 'SMS', 'Phone call'].every(m => formData.contactMethods.includes(m)) ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-[var(--border-hover)] group-hover:border-[var(--accent)]/50'
+                      }`}>
+                        {['Email', 'SMS', 'Phone call'].every(m => formData.contactMethods.includes(m)) && <Check size={14} className="text-white" />}
+                      </div>
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      trackEvent('question_answered', { question: 'contactMethods', answer: formData.contactMethods.join(',') });
+                      nextStep();
+                    }}
+                    disabled={formData.contactMethods.length === 0}
+                    className="mt-4 w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] text-[var(--accent-fg)] font-medium py-4 px-8 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 border border-transparent shadow-lg"
+                  >
+                    Next <ArrowRight size={18} />
+                  </button>
+                </div>
+              )}
+
+              {step === 9 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-dm-gradient">Anything to cover?</h2>
                   <p className="text-[var(--fg-muted)] text-sm">Is there anything specific you'd like us to know before the session? (Optional)</p>

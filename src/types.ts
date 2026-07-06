@@ -7,6 +7,7 @@ export type FormData = {
   circle: string;
   mouseTouchpad: string;
   windowsMac: string;
+  contactMethods: string[];
   anythingElse: string;
 };
 
@@ -19,5 +20,6 @@ export const INITIAL_FORM_DATA: FormData = {
   circle: '',
   mouseTouchpad: '',
   windowsMac: '',
+  contactMethods: [],
   anythingElse: '',
 };

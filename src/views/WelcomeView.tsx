@@ -87,7 +87,7 @@ export const WelcomeView: React.FC<{ key?: string; onNext: () => void }> = ({ on
             <p>
               {step >= 4 && <TypewriterSegment text="Before you meet your mentor, you'll connect with your dedicated " delay={200} onComplete={() => setStep(5)} />}
               {step >= 5 && <TypewriterSegment text="Onboarding Specialist" isBold delay={0} onComplete={() => setStep(6)} />}
-              {step >= 6 && <TypewriterSegment text=". They will show you how to use Circle—the platform for our exclusive courses, live sessions, and much more." delay={0} onComplete={() => setStep(7)} />}
+              {step >= 6 && <TypewriterSegment text=". They will show you how to use Circle (the platform for our exclusive courses, live sessions, and much more)." delay={0} onComplete={() => setStep(7)} />}
             </p>
           </div>
 
@@ -98,7 +98,7 @@ export const WelcomeView: React.FC<{ key?: string; onNext: () => void }> = ({ on
             className="flex flex-col items-center gap-4 mt-6"
           >
             <p className="text-sm md:text-base text-[var(--fg)] font-bold text-center">
-              Please complete this short form so we can provide a personalized experience.
+              To provide a personalized experience, please complete this short form.
             </p>
             <button
               onClick={() => {
@@ -108,7 +108,7 @@ export const WelcomeView: React.FC<{ key?: string; onNext: () => void }> = ({ on
               disabled={step < 7}
               className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] active:scale-95 font-medium py-3.5 px-8 rounded-xl transition-all duration-200 inline-flex items-center gap-2 border border-[var(--border)] shadow-lg w-full md:w-auto justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Continue to Form <ArrowRight size={18} />
+              Customize My Experience <ArrowRight size={18} />
             </button>
           </motion.div>
         </motion.div>
