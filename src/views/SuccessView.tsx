@@ -111,6 +111,29 @@ export const SuccessView: React.FC<{ key?: string }> = () => {
                           {copied ? 'Copied' : 'Copy'}
                         </button>
                       </div>
+                      
+                      <div className="mt-6 pt-5 border-t border-[var(--border)]">
+                        <h3 className="text-sm font-bold text-[var(--fg)] uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <Mail size={16} /> Fast Search Shortcuts
+                        </h3>
+                        <p className="text-sm text-[var(--fg-muted)] mb-3">
+                          Instead of searching by hand, tap your email provider below to jump straight to the invite.
+                        </p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          {emailLinks.map(link => (
+                            <a
+                              key={link.name}
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => trackEvent('email_provider_clicked', { provider: link.name })}
+                              className="bg-[var(--border)] hover:bg-[var(--border-hover)] border border-transparent text-center py-2 px-3 rounded-xl text-[var(--fg)] text-xs md:text-sm font-medium transition-all hover:-translate-y-1"
+                            >
+                              {link.name}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
                     </StepItem>
                     
                     <StepItem number={2}>
@@ -125,29 +148,6 @@ export const SuccessView: React.FC<{ key?: string }> = () => {
                       A new tab opens on Circle. Fill in your details to finish your sign-up.
                     </StepItem>
                   </ol>
-
-                  <div className="pt-6 mt-6 border-t border-[var(--border)]">
-                    <h3 className="text-sm font-bold text-[var(--fg)] uppercase tracking-wider mb-4 flex items-center gap-2">
-                      <Mail size={16} /> Fast Search Shortcuts
-                    </h3>
-                    <p className="text-sm text-[var(--fg-muted)] mb-4">
-                      Instead of searching by hand, tap your email provider below to jump straight to the invite.
-                    </p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {emailLinks.map(link => (
-                        <a
-                          key={link.name}
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => trackEvent('email_provider_clicked', { provider: link.name })}
-                          className="bg-[var(--border)] hover:bg-[var(--border-hover)] border border-transparent text-center py-3 px-4 rounded-xl text-[var(--fg)] text-sm font-medium transition-all hover:-translate-y-1"
-                        >
-                          {link.name}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

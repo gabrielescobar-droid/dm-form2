@@ -37,7 +37,7 @@ function CustomDropdown({ value, onChange, options, placeholder }: { value: stri
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute z-50 w-full mt-2 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden"
+              className="absolute z-50 w-full mt-2 bg-white dark:bg-dm-ink border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden"
             >
               <div className="max-h-60 overflow-y-auto dm-scroll py-2">
                 {options.map((opt) => (
@@ -234,7 +234,7 @@ export const FormView: React.FC<Props> = ({ formData, updateData, onComplete, se
                 <RadioQuestion
                   title="Tech check"
                   subtitle="Will you be using a laptop or desktop computer?"
-                  options={['Yes', 'Phone only']}
+                  options={['Yes (recommended)', 'Phone only']}
                   value={formData.laptop}
                   onChange={(val) => {
                     updateData({ laptop: val });
