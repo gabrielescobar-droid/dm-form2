@@ -20,6 +20,15 @@ function MainApp() {
     return INITIAL_FORM_DATA;
   });
   const [currentView, setCurrentView] = useState<'welcome' | 'form' | 'success'>('welcome');
+  const [userId] = useState(() => {
+    let id = localStorage.getItem('dm_user_id');
+    if (!id) {
+      id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('dm_user_id', id);
+    }
+    return id;
+  });
+
   const [sessionId] = useState(() => {
     let id = sessionStorage.getItem('dm_session_id');
     if (!id) {
@@ -31,16 +40,27 @@ function MainApp() {
 
   useEffect(() => {
     trackPageView(`/${currentView}`);
-    if (currentView === 'welcome') {
-      setDoc(doc(db, 'funnel_tracking', sessionId), {
-        entered: true,
-        started_form: false,
-        max_step: 0,
-        completed: false,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+    
+    // Always attach userId and email if available
+    const funnelData: any = {
+      userId,
+      updatedAt: serverTimestamp()
+    };
+    
+    if (formData.email) {
+      funnelData.email = formData.email;
     }
-  }, [currentView, sessionId]);
+
+    if (currentView === 'welcome') {
+      funnelData.entered = true;
+      funnelData.started_form = false;
+      funnelData.max_step = 0;
+      funnelData.completed = false;
+    }
+    
+    setDoc(doc(db, 'funnel_tracking', sessionId), funnelData, { merge: true });
+  }, [currentView, sessionId, userId, formData.email]);
+
 
   const handleFormComplete = async () => {
     if (formData.email) {

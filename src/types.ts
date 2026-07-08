@@ -8,6 +8,7 @@ export type FormData = {
   mouseTouchpad: string;
   windowsMac: string;
   contactMethods: string[];
+  hoursPerWeek: string;
   anythingElse: string;
 };
 
@@ -21,5 +22,6 @@ export const INITIAL_FORM_DATA: FormData = {
   mouseTouchpad: '',
   windowsMac: '',
   contactMethods: [],
+  hoursPerWeek: '',
   anythingElse: '',
 };

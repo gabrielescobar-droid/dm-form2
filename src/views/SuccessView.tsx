@@ -7,9 +7,12 @@ import { trackEvent } from '../utils/analytics';
 
 export const SuccessView: React.FC<{ key?: string }> = () => {
   const [copied, setCopied] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
   const [showDeviceAlert, setShowDeviceAlert] = useState(false);
+  const [showPhoneMessage, setShowPhoneMessage] = useState(false);
   const [showSteps, setShowSteps] = useState(false);
   const emailSender = "no-reply@notification.circle.so";
+  const instanceUrl = "circle.decentralizedmasters.com";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(emailSender);
@@ -17,9 +20,17 @@ export const SuccessView: React.FC<{ key?: string }> = () => {
     trackEvent('copy_email_sender', { email: emailSender });
     setTimeout(() => setCopied(false), 2000);
   };
+  
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(instanceUrl);
+    setCopiedUrl(true);
+    trackEvent('copy_instance_url', { url: instanceUrl });
+    setTimeout(() => setCopiedUrl(false), 2000);
+  };
 
   const handleGetIntoCircle = () => {
     trackEvent('get_into_circle_clicked');
+    setShowPhoneMessage(false);
     setShowDeviceAlert(true);
   };
 
@@ -177,24 +188,43 @@ export const SuccessView: React.FC<{ key?: string }> = () => {
                   <div className="w-8 h-[2px] bg-[#e0455a] rotate-45 transform origin-center absolute top-1/2 -ml-1"></div>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-[var(--fg)] mb-4 text-center">Use a Laptop or Desktop</h3>
-              <p className="text-[var(--fg-muted)] leading-relaxed mb-8 text-center">
-                Make sure you are on a laptop or desktop, not on a mobile phone. We strongly recommend that you complete this process on a computer for the best experience.
-              </p>
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleContinueAnyway}
-                  className="w-full py-4 px-4 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] font-bold hover:bg-[var(--accent-hover)] transition-colors text-center"
-                >
-                  Continue anyway
-                </button>
-                <button
-                  onClick={() => setShowDeviceAlert(false)}
-                  className="w-full py-4 px-4 rounded-xl border-2 border-[var(--border)] text-[var(--fg)] font-bold hover:bg-[var(--border)] transition-colors text-center"
-                >
-                  Go Back
-                </button>
-              </div>
+              
+              {showPhoneMessage ? (
+                <>
+                  <h3 className="text-xl font-bold text-[var(--fg)] mb-4 text-center">Computer required</h3>
+                  <p className="text-[var(--fg-muted)] leading-relaxed mb-8 text-center">
+                    OK then, for a better experience, it will be necessary for you to do this on a laptop or desktop.
+                  </p>
+                  <button
+                    onClick={() => setShowDeviceAlert(false)}
+                    className="w-full py-3 px-4 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] font-bold hover:bg-[var(--accent-hover)] transition-colors text-center"
+                  >
+                    Got it
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-xl font-bold text-[var(--fg)] mb-4 text-center">Use a Laptop or Desktop</h3>
+                  <p className="text-[var(--fg-muted)] leading-relaxed mb-6 text-center text-sm">
+                    Make sure you are on a laptop or desktop for the best experience getting into Circle.
+                  </p>
+    
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={handleContinueAnyway}
+                      className="w-full py-3 px-4 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] font-bold hover:bg-[var(--accent-hover)] transition-colors text-center"
+                    >
+                      I am already on a computer
+                    </button>
+                    <button
+                      onClick={() => setShowPhoneMessage(true)}
+                      className="w-full py-3 px-4 rounded-xl border-2 border-[var(--border)] text-[var(--fg)] font-bold hover:bg-[var(--border)] transition-colors text-center"
+                    >
+                      I am on a phone
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}

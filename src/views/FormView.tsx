@@ -37,7 +37,7 @@ function CustomDropdown({ value, onChange, options, placeholder }: { value: stri
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute z-50 w-full mt-2 bg-white dark:bg-dm-ink border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden"
+              className="absolute z-50 w-full mt-2 solid-dropdown border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden"
             >
               <div className="max-h-60 overflow-y-auto dm-scroll py-2">
                 {options.map((opt) => (
@@ -71,7 +71,7 @@ interface Props {
 
 export const FormView: React.FC<Props> = ({ formData, updateData, onComplete, sessionId }) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 9;
+  const totalSteps = 10;
 
   const nextStep = () => {
     trackEvent('form_step_completed', { step_number: step });
@@ -152,8 +152,15 @@ export const FormView: React.FC<Props> = ({ formData, updateData, onComplete, se
                   
                   <input
                     type="email"
+                    autoFocus
                     value={formData.email}
                     onChange={(e) => updateData({ email: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && formData.email.includes('@')) {
+                        trackEvent('question_answered', { question: 'email', answer: 'provided' });
+                        nextStep();
+                      }
+                    }}
                     autoComplete="email"
                     placeholder="Enter your email address"
                     className="w-full bg-[var(--bg)] border-2 border-[var(--border)] hover:border-[var(--border-hover)] rounded-xl p-4 text-[var(--fg)] font-medium focus:outline-none focus:border-[var(--accent)] transition-colors shadow-sm"
@@ -202,13 +209,17 @@ export const FormView: React.FC<Props> = ({ formData, updateData, onComplete, se
                                 : [...formData.franja, f];
                               updateData({ franja: newFranja });
                             }}
-                            className={`px-6 py-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3 font-medium shadow-sm cursor-pointer ${
+                            className={`px-6 py-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3 font-medium shadow-sm cursor-pointer group ${
                               isSelected 
                                 ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] shadow-[0_4px_12px_rgba(56,114,238,0.1)]' 
                                 : 'bg-[var(--bg)] border-[var(--border)] text-[var(--fg)] hover:border-[var(--border-hover)] hover:shadow-md'
                             }`}
                           >
-                            {isSelected && <Check size={18} />}
+                            <div className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${
+                              isSelected ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-[var(--border-hover)] group-hover:border-[var(--accent)]/50'
+                            }`}>
+                              {isSelected && <Check size={14} className="text-[var(--bg)]" />}
+                            </div>
                             {f}
                           </button>
                         );
@@ -234,7 +245,7 @@ export const FormView: React.FC<Props> = ({ formData, updateData, onComplete, se
                 <RadioQuestion
                   title="Tech check"
                   subtitle="Will you be using a laptop or desktop computer?"
-                  options={['Yes (recommended)', 'Phone only']}
+                  options={['Yes (recommended)', 'No']}
                   value={formData.laptop}
                   onChange={(val) => {
                     updateData({ laptop: val });
@@ -262,7 +273,7 @@ export const FormView: React.FC<Props> = ({ formData, updateData, onComplete, se
                 <RadioQuestion
                   title="Circle community"
                   subtitle="Have you joined our Circle community platform?"
-                  options={["I'm in", 'Not yet', 'Need help']}
+                  options={["I'm in", 'Not yet', 'Not sure']}
                   value={formData.circle}
                   onChange={(val) => {
                     updateData({ circle: val });
@@ -301,6 +312,19 @@ export const FormView: React.FC<Props> = ({ formData, updateData, onComplete, se
               )}
 
               {step === 8 && (
+                <RadioQuestion
+                  title="Time Commitment"
+                  subtitle="How many hours per week can you dedicate to the program?"
+                  options={['0 to 7 hours', '7 to 14 hours', '14 to 21 hours', '21+ hours']}
+                  value={formData.hoursPerWeek}
+                  onChange={(val) => {
+                    updateData({ hoursPerWeek: val });
+                    trackEvent('question_answered', { question: 'hoursPerWeek', answer: val });
+                    setTimeout(nextStep, 300);
+                  }}
+                />
+              )}
+              {step === 9 && (
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <h2 className="text-2xl font-bold text-dm-gradient">Contact Preference</h2>
@@ -369,15 +393,24 @@ export const FormView: React.FC<Props> = ({ formData, updateData, onComplete, se
                 </div>
               )}
 
-              {step === 9 && (
+              {step === 10 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-dm-gradient">Anything to cover?</h2>
                   <p className="text-[var(--fg-muted)] text-sm">Is there anything specific you'd like us to know before the session? (Optional)</p>
                   
                   <textarea
+                    autoFocus
                     value={formData.anythingElse}
                     onChange={(e) => updateData({ anythingElse: e.target.value })}
-                    placeholder="Type your thoughts here..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        if (formData.anythingElse) {
+                          trackEvent('question_answered', { question: 'anythingElse', answer: 'provided' });
+                        }
+                        nextStep();
+                      }
+                    }}
+                    placeholder="Type your thoughts here... (Press Ctrl+Enter to submit)"
                     className="w-full h-40 bg-[var(--bg)] border border-[var(--border)] rounded-xl p-4 text-[var(--fg)] focus:outline-none focus:border-[var(--accent)] transition-colors resize-none dm-scroll"
                   />
 

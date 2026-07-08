@@ -87,7 +87,7 @@ export const WelcomeView: React.FC<{ key?: string; onNext: () => void }> = ({ on
             <p>
               {step >= 4 && <TypewriterSegment text="Before you meet your mentor, you'll connect with your dedicated " delay={200} onComplete={() => setStep(5)} />}
               {step >= 5 && <TypewriterSegment text="Onboarding Specialist" isBold delay={0} onComplete={() => setStep(6)} />}
-              {step >= 6 && <TypewriterSegment text=". They will show you how to use Circle (the platform for our exclusive courses, live sessions, and much more)." delay={0} onComplete={() => setStep(7)} />}
+              {step >= 6 && <TypewriterSegment text=". They will help connect you with your mentor and show you how to use Circle (the platform for our exclusive courses, live sessions, and much more)." delay={0} onComplete={() => setStep(7)} />}
             </p>
           </div>
 

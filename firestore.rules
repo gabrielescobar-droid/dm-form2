@@ -12,10 +12,11 @@ service cloud.firestore {
     }
     
     function isValidFormSubmission(data) {
-      return data.keys().hasAll(['email', 'timezone', 'franja', 'laptop', 'zoom', 'circle', 'mouseTouchpad', 'windowsMac', 'contactMethods', 'anythingElse', 'createdAt']) &&
+      return data.keys().hasAll(['email', 'timezone', 'franja', 'hoursPerWeek', 'laptop', 'zoom', 'circle', 'mouseTouchpad', 'windowsMac', 'contactMethods', 'anythingElse', 'createdAt']) &&
              data.email is string &&
              data.timezone is string &&
              data.franja is list &&
+             data.hoursPerWeek is string &&
              data.laptop is string &&
              data.zoom is string &&
              data.circle is string &&

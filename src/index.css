@@ -28,6 +28,7 @@
   --accent-fg: var(--dm-white);
   
   --card-bg: var(--dm-white);
+  --dropdown-bg: #FFFFFF;
   --card-border: rgba(1, 14, 51, 0.15);
   --card-shadow: 0 8px 32px rgba(1, 29, 111, 0.08);
   
@@ -46,6 +47,7 @@
   --accent-fg: var(--dm-white);
 
   --card-bg: rgba(255, 255, 255, 0.03);
+  --dropdown-bg: #010E33;
   --card-border: rgba(255, 255, 255, 0.1);
   --card-shadow: 0 0 28px rgba(56, 114, 238, 0.15);
   
@@ -81,6 +83,13 @@ html, body {
   border: 1px solid var(--card-border);
   box-shadow: var(--card-shadow);
   transition: all 0.3s ease;
+}
+
+.solid-dropdown {
+  background-color: var(--dm-white);
+}
+.dark .solid-dropdown {
+  background-color: var(--dm-ink);
 }
 
 .dm-scroll::-webkit-scrollbar {

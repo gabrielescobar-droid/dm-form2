@@ -18,8 +18,10 @@ export function AdminView() {
   const [password, setPassword] = useState('');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [funnelStats, setFunnelStats] = useState({ entered: 0, started: 0, maxSteps: {} as Record<number, number>, completed: 0 });
+  const [rawFunnelData, setRawFunnelData] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -62,12 +64,13 @@ export function AdminView() {
 
   const handleExportCSV = () => {
     if (submissions.length === 0) return;
-    const headers = ['ID', 'Email', 'Timezone', 'Availability', 'Laptop', 'Zoom', 'Circle', 'Mouse/Touchpad', 'OS', 'Contact Methods', 'Anything Else', 'Date'];
+    const headers = ['ID', 'Email', 'Timezone', 'Availability', 'Hours/Week', 'Laptop', 'Zoom', 'Circle', 'Mouse/Touchpad', 'OS', 'Contact Methods', 'Anything Else', 'Date'];
     const rows = submissions.map(sub => [
       sub.id,
       sub.email,
       sub.timezone,
       sub.franja.join('; '),
+      sub.hoursPerWeek,
       sub.laptop,
       sub.zoom,
       sub.circle,
@@ -113,6 +116,7 @@ export function AdminView() {
           mouseTouchpad: data.mouseTouchpad || 'N/A',
           windowsMac: data.windowsMac || 'N/A',
           contactMethods: data.contactMethods || [],
+          hoursPerWeek: data.hoursPerWeek || 'N/A',
           anythingElse: data.anythingElse || '',
           createdAt: data.createdAt?.toDate() || new Date(),
         });
@@ -121,13 +125,42 @@ export function AdminView() {
 
       const funnelQ = query(collection(db, 'funnel_tracking'));
       const funnelSnap = await getDocs(funnelQ);
+
+      const rawFunnel: any[] = [];
+      const userFunnelMap = new Map<string, any>();
+
+      funnelSnap.forEach(doc => {
+        const d = doc.data();
+        rawFunnel.push(d);
+        
+        const uid = d.userId || doc.id; // fallback to sessionId if no userId
+        
+        if (!userFunnelMap.has(uid)) {
+          userFunnelMap.set(uid, {
+            entered: d.entered || false,
+            started_form: d.started_form || false,
+            completed: d.completed || false,
+            max_step: d.max_step || 0
+          });
+        } else {
+          const existing = userFunnelMap.get(uid);
+          userFunnelMap.set(uid, {
+            entered: existing.entered || d.entered,
+            started_form: existing.started_form || d.started_form,
+            completed: existing.completed || d.completed,
+            max_step: Math.max(existing.max_step || 0, d.max_step || 0)
+          });
+        }
+      });
+      
+      setRawFunnelData(rawFunnel);
+
       let entered = 0;
       let started = 0;
       let completed = 0;
       let maxSteps: Record<number, number> = {};
       
-      funnelSnap.forEach(doc => {
-        const d = doc.data();
+      userFunnelMap.forEach(d => {
         if (d.entered) entered++;
         if (d.started_form) started++;
         if (d.completed) completed++;
@@ -135,6 +168,7 @@ export function AdminView() {
           maxSteps[d.max_step] = (maxSteps[d.max_step] || 0) + 1;
         }
       });
+
       setFunnelStats({ entered, started, completed, maxSteps });
 
     } catch (err: any) {
@@ -298,6 +332,7 @@ export function AdminView() {
                 <div className="flex flex-col">
                   <DetailRow label="Timezone" value={selectedSubmission.timezone} />
                   <DetailRow label="Availability" value={selectedSubmission.franja.join(', ')} />
+                  <DetailRow label="Hours/Week" value={selectedSubmission.hoursPerWeek} />
                   <DetailRow label="Using Laptop" value={selectedSubmission.laptop} />
                   <DetailRow label="Zoom Installed" value={selectedSubmission.zoom} />
                   <DetailRow label="Joined Circle" value={selectedSubmission.circle} />
@@ -311,6 +346,34 @@ export function AdminView() {
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--fg-muted)] mb-2">Additional Notes</h3>
                 <p className="text-[var(--fg)] whitespace-pre-wrap">{selectedSubmission.anythingElse || 'None'}</p>
               </div>
+
+              {(() => {
+                const userIds = new Set(rawFunnelData.filter(d => d.email === selectedSubmission.email && d.userId).map(d => d.userId));
+                const userSessions = rawFunnelData.filter(d => d.email === selectedSubmission.email || (d.userId && userIds.has(d.userId)));
+                const entered = userSessions.filter(d => d.entered).length;
+                const started = userSessions.filter(d => d.started_form).length;
+                const completed = userSessions.filter(d => d.completed).length;
+
+                return (
+                  <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-5 shadow-sm col-span-1 md:col-span-2 mt-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--fg-muted)] mb-3">User Journey (Total Attempts)</h3>
+                    <div className="flex gap-8">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-[var(--fg-muted)]">App Entries</span>
+                        <span className="font-bold text-[var(--fg)] text-lg">{entered}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-[var(--fg-muted)]">Form Starts</span>
+                        <span className="font-bold text-[var(--fg)] text-lg">{started}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-[var(--fg-muted)]">Completions</span>
+                        <span className="font-bold text-[var(--fg)] text-lg">{completed}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </ScrollableArea>
         </GlassCard>
